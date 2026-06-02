@@ -2,6 +2,7 @@
 #define TEST_FUN_H
 
 int test_simple(void);
+int test_simple_crlf(void);
 int test_2(void);
 int test_space_key(void);
 int test_long(void);

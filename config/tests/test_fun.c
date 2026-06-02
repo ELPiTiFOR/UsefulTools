@@ -29,6 +29,37 @@ int test_simple(void)
     return 0;
 }
 
+int test_simple_crlf(void)
+{
+    config *simple_config = read_config("./tests/simple_crlf.config");
+    if (check_config(simple_config))
+    {
+        return 1;
+    }
+
+    size_t expected_count = 2;
+    if (simple_config->pairs_count != expected_count)
+    {
+        printf("[FAILED] test_simple | pairs_count is not %zu", expected_count);
+        return 1;
+    }
+
+    struct pair *p = simple_config->pairs;
+
+    if (check_pair(p, "path_game", "/some/path/"))
+    {
+        return 1;
+    }
+
+    p++;
+    if (check_pair(p, "path_other", "/some/really/long/and/tiring/path/to/somewhere/or/something"))
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 int test_2(void)
 {
     config *simple_config = read_config("./tests/double.config");

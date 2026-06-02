@@ -13,6 +13,60 @@
 #define READ_LINE_ERROR 1
 #define READ_LINE_EOF 2
 
+#define CHECK_NEWLINE_EOF 1
+#define CHECK_NEWLINE_LF 2
+#define CHECK_NEWLINE_CRLF 3
+#define CHECK_NEWLINE_NOTHING 0
+
+/*
+**  Returns CHECK_NEWLINE_EOF if `file` is at EOF
+**  Returns CHECK_NEWLINE_LF if `file` is at LF
+**  Returns CHECK_NEWLINE_CRLF if `file` is at CRLF
+**  Returns CHECK_NEWLINE_NOTHING otherwise
+*/
+int check_newline(FILE *file)
+{
+    char buf[] = {0};
+    size_t r = 0;
+    r = fread(buf, 1, 1, file);
+    if (r == 0)
+    {
+        return CHECK_NEWLINE_EOF;
+    }
+
+    if (buf[0] == '\r')
+    {
+        // check '\n'
+        r = fread(buf, 1, 1, file);
+
+        // we should check first if r is 0, but in this case it is not
+        // necessary:
+        // if we didn't read anything, then buf[0] is still '\r' and there's no
+        // way buf[0] could be '\n', so no risk of entering the if
+        // if we read something, then r is not 0, and therefore we want to check
+        // if we read a '\n'
+        if (buf[0] == '\n')
+        {
+            fseek(file, -2, SEEK_CUR);
+            return CHECK_NEWLINE_CRLF;
+        }
+
+        // if r == 0, we go back by 1 byte
+        // if r == 1, we go back by 2 bytes
+        fseek(file, -1 - r, SEEK_CUR);
+        return CHECK_NEWLINE_NOTHING;
+    }
+
+    fseek(file, -1, SEEK_CUR);
+
+    if (buf[0] == '\n')
+    {
+        return CHECK_NEWLINE_LF;
+    }
+
+    return CHECK_NEWLINE_NOTHING;
+}
+
 /*
 ** This only handles files that use LF instead of CRLF
 */
@@ -20,32 +74,19 @@
 int get_config_line(FILE *file, char **next_line)
 {
     size_t line_len = 0;
-    char buf1[] = { 0 };
-    size_t total_read = 0;
-    size_t r;
-    int is_newline = 0;
+    int newline_status = 0;
 
-    do
+    while ((newline_status = check_newline(file)) == CHECK_NEWLINE_NOTHING)
     {
-        r = fread(buf1, 1, 1, file);
-        total_read += r;
+        fseek(file, 1, SEEK_CUR);
         line_len++;
-    } while (buf1[0] != '\n' && r != 0);
-
-    if (r)
-    {
-        is_newline = 1;
     }
 
-    if (total_read == 0)
+    if (line_len == 0)
     {
         *next_line = NULL;
         return GET_LINE_EOF;
     }
-
-    // line_len is ahead of the length of the line by 1 because we increment it
-    // regardless of the condition evaluation, so we subtract one
-    line_len--;
 
     // line_len + 1 because we need 1 byte for the null terminating byte
     char *line = calloc(1, line_len + 1);
@@ -56,9 +97,15 @@ int get_config_line(FILE *file, char **next_line)
         return GET_LINE_ERROR;
     }
 
-    fseek(file, -line_len - is_newline, SEEK_CUR);
+    fseek(file, -line_len, SEEK_CUR);
     fread(line, 1, line_len, file);
-    fseek(file, 1, SEEK_CUR);
+
+    // we skip the LF/CRLF byte(s) if needed
+    if (newline_status != CHECK_NEWLINE_EOF)
+    {
+        fseek(file, 1 + (newline_status == CHECK_NEWLINE_CRLF), SEEK_CUR);
+    }
+
     line[line_len] = 0;
     *next_line = line;
     return GET_LINE_SUCCESS;

@@ -15,6 +15,7 @@ int test(void)
 {
 
     FUN(test_simple_ptr, test_simple);
+    FUN(test_simple_crlf_ptr, test_simple_crlf);
     FUN(test_2_ptr, test_2);
     FUN(test_space_key_ptr, test_space_key);
     FUN(test_long_ptr, test_long);
@@ -25,6 +26,7 @@ int test(void)
     fun tests[] =
     {
         test_simple_ptr,
+        test_simple_crlf_ptr,
         test_2_ptr,
         test_space_key_ptr,
         test_long_ptr,
