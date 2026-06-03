@@ -1,7 +1,9 @@
 CC = gcc
 CPPFLAGS = -Isrc/ -Ilibs/ -Itests/
-LDFLAGS = -Llibs/
-LDLIBS = -lconfig
+# LDFLAGS = -Llibs/
+# LDLIBS = -lconfig
+
+CFLAGS = -std=c99 #-g
 
 SRC = \
 	src/logger.c \
@@ -16,7 +18,7 @@ SRCTEST = \
 OBJTEST = ${SRCTEST:.c=.o}
 
 test: $(OBJTEST)
-	$(CC) $(CPPFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
 
 clean:
-	$(RM) $(OBJTEST)
+	$(RM) test.exe test $(OBJTEST) *.log

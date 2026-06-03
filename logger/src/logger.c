@@ -6,10 +6,10 @@
 int is_file = 0;
 FILE *logs_stream = NULL;
 FILE *errors_stream = NULL;
-LOG_LEVEL log_level = NONE;
+LOG_LEVEL log_level = LOGA;
 char *log_prefixes[] = { "NONE", "ERRO", "WARN", "LOGA", "LOGM" };
 
-void setup_default(void)
+static void setup_default(void)
 {
     logs_stream = stdout;
     errors_stream = stderr;
@@ -17,19 +17,7 @@ void setup_default(void)
     is_file = 0;
 }
 
-int close_log_file()
-{
-    if (!is_file)
-    {
-        fprintf(stderr, "WARN: There are no log files. Returning.");
-        return 1;
-    }
-
-    fclose(logs_stream);
-    fclose(errors_stream);
-}
-
-void log(LOG_LEVEL level, char *msg)
+void log_msg(LOG_LEVEL level, char *msg)
 {
     if (!logs_stream)
     {
@@ -42,33 +30,44 @@ void log(LOG_LEVEL level, char *msg)
     }
 
     FILE *final_stream = logs_stream;
-    if (level == ERROR || level == WARN)
+    if (level == ERRO || level == WARN)
     {
         final_stream = errors_stream;
     }
 
-    //           01234567
-    // TODO: add [ ERRO ] at the start of the message and time
-    char lf[1] = {'\n'};
-    char tag[9];
+    // TODO: add time at the start of the message
+    char tag[512] = {0};
     sprintf(tag, "[ %s ] ", log_prefixes[level]);
-    fwrite(tag, 1, 9, logs_stream);
-    fwrite(msg, 1, strlen(msg), logs_stream);
-    fwrite(lf, 1, 1, logs_stream);
-    //fflush(logs_stream);
+
+    fprintf(final_stream, "%s%s%s", tag, msg, NEWLINE);
 }
 
-int set_log_file(char *path, char *mode)
+void set_log_file(char *path, char *mode)
 {
     FILE *file = fopen(path, mode);
     if (!file)
     {
         fprintf(stderr, "ERROR: Couldn't open file %s\n", path);
-        return 1;
+        return;
     }
 
     is_file = 1;
     logs_stream = file;
     errors_stream = file;
-    return 0;
+}
+
+void set_log_level(LOG_LEVEL level)
+{
+    log_level = level;
+}
+
+void close_log_file(void)
+{
+    if (!is_file)
+    {
+        fprintf(stderr, "WARN: There are no log files. Returning.");
+        return;
+    }
+
+    fclose(logs_stream);
 }

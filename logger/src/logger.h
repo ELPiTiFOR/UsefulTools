@@ -3,7 +3,13 @@
 
 #include <stdio.h>
 
-extern FILE *logs_stream;
+#ifdef _WIN32
+    #define NEWLINE "\r\n"
+    #define LEN_NEWLINE 2
+#else
+    #define NEWLINE "\n"
+    #define LEN_NEWLINE 1
+#endif
 
 typedef enum
 {
@@ -14,8 +20,13 @@ typedef enum
     LOGM
 } LOG_LEVEL;
 
+
+extern FILE *logs_stream;
 extern LOG_LEVEL log_level;
 
-void log(LOG_LEVEL level, char *msg);
+void log_msg(LOG_LEVEL level, char *msg);
+void set_log_file(char *path, char *mode);
+void set_log_level(LOG_LEVEL level);
+void close_log_file(void);
 
 #endif /* LOGGER_H */
