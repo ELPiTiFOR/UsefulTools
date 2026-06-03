@@ -42,7 +42,7 @@ int check_newline(FILE *file)
         // we should check first if r is 0, but in this case it is not
         // necessary:
         // if we didn't read anything, then buf[0] is still '\r' and there's no
-        // way buf[0] could be '\n', so no risk of entering the if
+        // way buf[0] could be '\n', so no risk of entering the `if`
         // if we read something, then r is not 0, and therefore we want to check
         // if we read a '\n'
         if (buf[0] == '\n')
@@ -66,10 +66,6 @@ int check_newline(FILE *file)
 
     return CHECK_NEWLINE_NOTHING;
 }
-
-/*
-** This only handles files that use LF instead of CRLF
-*/
 
 int get_config_line(FILE *file, char **next_line)
 {
