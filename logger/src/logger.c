@@ -9,11 +9,10 @@ FILE *errors_stream = NULL;
 LOG_LEVEL log_level = LOGA;
 char *log_prefixes[] = { "NONE", "ERRO", "WARN", "LOGA", "LOGM" };
 
-static void setup_default(void)
+static void setup_default_streams(void)
 {
     logs_stream = stdout;
     errors_stream = stderr;
-    log_level = LOGA;
     is_file = 0;
 }
 
@@ -21,7 +20,7 @@ void log_msg(LOG_LEVEL level, char *msg)
 {
     if (!logs_stream)
     {
-        setup_default();
+        setup_default_streams();
     }
 
     if (level > log_level)
